@@ -1,0 +1,112 @@
+/**
+ * CSS animations and transitions for task components
+ */
+
+/* Task item animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Task item animation */
+.task-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+.task-item.deleting {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+/* Form animations */
+.task-form {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Checkbox animation */
+input[type='checkbox']:checked {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.2s ease-out;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Badge animations */
+.badge {
+  animation: slideIn 0.2s ease-out;
+}
+
+/* Loading state */
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Smooth transitions for state changes */
+.transition-all {
+  transition: all 0.2s ease-out;
+}
+
+/* Checkbox completion animation */
+.task-item input[type='checkbox']:checked ~ * {
+  animation: fadeIn 0.2s ease-out;
+}

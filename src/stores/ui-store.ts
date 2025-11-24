@@ -1,14 +1,20 @@
+/**
+ * UI state management
+ */
+
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 interface UIState {
-  // Add your UI state here
+  darkMode: boolean
+  toggleDarkMode: () => void
 }
 
 export const useUIStore = create<UIState>()(
   persist(
-    () => ({
-      // Add your UI state implementation here
+    (set) => ({
+      darkMode: false,
+      toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
     }),
     {
       name: 'ui-storage',
