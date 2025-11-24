@@ -1,0 +1,407 @@
+# Template-Specific Instructions for Vite + React + TypeScript Template
+
+This template is a modern, production-ready React 18+ application built with Vite, TypeScript, Tailwind CSS v4, shadcn/ui components, lucide-react icons, and essential tooling for building fast Single Page Applications.
+
+## Core Technologies
+
+- **Framework**: React 19+ with Vite 7+
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS v4 (CSS-first approach with @theme)
+- **Components**: shadcn/ui (core components in template, others installed on-demand)
+- **Icons**: lucide-react
+- **State Management**: Zustand (client-side) + TanStack React Query (server state)
+- **Routing**: React Router v7 (SPA routing with lazy loading)
+- **Error Handling**: Error Boundary component
+- **API Client**: Lightweight fetch wrapper (`src/lib/api-client.ts`)
+- **Path Aliases**: Use `@/` to import from `src/` directory
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── ui/          # shadcn/ui components (PROTECTED - DO NOT MODIFY)
+│   │                # Core components: Button, Input, Label, Card, Dialog, Select, Tabs, Badge, Alert, Textarea, AlertDialog
+│   │                # Additional components auto-install on-demand when imported
+│   ├── features/    # Feature-specific components
+│   ├── layout/      # Layout components
+│   ├── error-boundary.tsx  # Global error boundary
+│   └── vibestack-badge.tsx  # VibeStack badge (PROTECTED - DO NOT MODIFY)
+├── lib/
+│   ├── api-client.ts    # Lightweight API client (native fetch)
+│   ├── env.ts          # Type-safe environment variables
+│   ├── react-query.tsx # TanStack React Query setup
+│   └── utils.ts        # Utility functions (includes cn() for class merging)
+├── hooks/           # Custom React hooks
+│   └── use-mobile.tsx  # Mobile detection hook
+├── stores/          # Zustand state stores
+│   ├── app-store.ts    # Application state
+│   └── ui-store.ts     # UI state (with persistence)
+├── routes/          # React Router configuration
+│   └── index.tsx       # Route definitions
+├── App.tsx          # Root component with routing
+├── main.tsx         # Application entry point
+└── index.css        # Global styles and Tailwind directives
+```
+
+## Available shadcn/ui Components
+
+**Core components available in template:**
+- Button, Input, Label, Textarea, Card, Alert, Badge, Dialog, Select, Tabs, AlertDialog
+
+**Additional components** (Sheet, Popover, Accordion, Table, Avatar, Calendar, etc.) are **automatically installed on-demand** when imported in generated code. You can import any shadcn component - if it's not in the template, it will be fetched from the registry and added automatically.
+
+### Component Import Rules (CRITICAL)
+
+1. **Always import components individually** from their files:
+   ```typescript
+   ✅ import { Button } from '@/components/ui/button'
+   ✅ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+   ✅ import { Sheet } from '@/components/ui/sheet'  // Will be auto-installed if not in template
+   ```
+
+2. **On-demand installation** - If you import a component that doesn't exist (e.g., Sheet, Popover, Accordion), it will be automatically fetched from the shadcn registry and added to the project.
+
+3. **DO NOT modify files in `src/components/ui/`** - These are protected shadcn/ui components.
+
+### Common Component Imports
+
+**Basic UI:**
+```typescript
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+```
+
+**Forms:**
+```typescript
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'  // ✅ Core component
+import { Textarea } from '@/components/ui/textarea'  // ✅ Core component
+// Form, Checkbox, RadioGroup, Switch - will be auto-installed if imported
+```
+
+**Dialogs & Overlays:**
+```typescript
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'  // ✅ Core component
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog'  // ✅ Core component
+// Sheet, Popover - will be auto-installed if imported
+```
+
+**Navigation:**
+```typescript
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'  // ✅ Core component
+// Accordion, NavigationMenu, Breadcrumb - will be auto-installed if imported
+```
+
+**Data Display:**
+```typescript
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'  // ✅ Core component
+// Table, Skeleton, Progress - will be auto-installed if imported
+```
+
+**Note:** You can import ANY shadcn component. If it's not in the template, it will be automatically installed from the registry when the code is generated.
+
+## State Management
+
+### Zustand (Client-Side State)
+
+Two stores are available as templates:
+
+**App Store** (`src/stores/app-store.ts`):
+```typescript
+import { useAppStore } from '@/stores/app-store'
+
+// Add your app state here
+```
+
+**UI Store** (`src/stores/ui-store.ts`):
+```typescript
+import { useUIStore } from '@/stores/ui-store'
+
+// UI state with localStorage persistence
+// Add your UI state here
+```
+
+### TanStack React Query (Server State)
+
+React Query is pre-configured with sensible defaults:
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiClient, createQueryFn, createMutationFn } from '@/lib/api-client'
+
+// Query example
+function useUsers() {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: createQueryFn<User[]>('/api/users'),
+  })
+}
+
+// Mutation example
+function useCreateUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createMutationFn<User, CreateUserPayload>('post', '/api/users'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+  })
+}
+```
+
+The `ReactQueryProvider` is already set up in `src/main.tsx`.
+
+## API Client
+
+A lightweight API client is available at `src/lib/api-client.ts`:
+
+```typescript
+import { apiClient, createQueryFn, createMutationFn } from '@/lib/api-client'
+
+// Direct usage
+const users = await apiClient.get<User[]>('/api/users')
+const user = await apiClient.post<User>('/api/users', { name: 'John' })
+
+// With React Query
+const queryFn = createQueryFn<User[]>('/api/users')
+const mutationFn = createMutationFn<User, CreateUserPayload>('post', '/api/users')
+```
+
+**Features:**
+- Native `fetch` (no external dependencies)
+- Automatic JSON handling
+- Request timeout (default 30s)
+- Error handling with `ApiClientError`
+- TypeScript support
+
+## Environment Variables
+
+Type-safe environment variable access via `src/lib/env.ts`:
+
+```typescript
+import { env, requireEnv } from '@/lib/env'
+
+// Optional env vars
+const apiUrl = env.apiBaseURL
+const appName = env.appName
+
+// Required env vars (throws if missing)
+const requiredUrl = requireEnv('VITE_API_BASE_URL')
+
+// Environment checks
+if (env.isDev) {
+  // Development only
+}
+```
+
+**Available env vars:**
+- `VITE_API_BASE_URL` - API base URL
+- `VITE_APP_NAME` - Application name
+- `VITE_APP_VERSION` - Application version
+
+## Routing
+
+React Router v7 is configured for SPA navigation:
+
+```typescript
+// src/routes/index.tsx
+import { createBrowserRouter } from 'react-router-dom'
+import { lazy } from 'react'
+
+const HomePage = lazy(() => import('@/pages/home'))
+const AboutPage = lazy(() => import('@/pages/about'))
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <App />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'about', element: <AboutPage /> },
+    ],
+  },
+])
+```
+
+**Features:**
+- Lazy loading for code splitting
+- Nested routes with `<Outlet />`
+- Error boundary wrapping
+- Suspense for loading states
+
+## Error Handling
+
+Error Boundary is set up globally in `src/App.tsx`:
+
+```typescript
+import { ErrorBoundary } from '@/components/error-boundary'
+
+<ErrorBoundary>
+  {/* Your app */}
+</ErrorBoundary>
+```
+
+Custom fallback can be provided:
+```typescript
+<ErrorBoundary fallback={<CustomErrorUI />}>
+  {/* Your app */}
+</ErrorBoundary>
+```
+
+## Available Hooks
+
+**Mobile Detection:**
+```typescript
+import { useIsMobile } from '@/hooks/use-mobile'
+
+function MyComponent() {
+  const isMobile = useIsMobile()
+  return <div>{isMobile ? 'Mobile' : 'Desktop'}</div>
+}
+```
+
+## Utilities
+
+**Class Name Merging:**
+```typescript
+import { cn } from '@/lib/utils'
+
+<div className={cn('base-class', condition && 'conditional-class', className)} />
+```
+
+## Icons
+
+Use lucide-react for all icons:
+
+```typescript
+import { Search, User, Settings, ArrowRight } from 'lucide-react'
+
+<Button>
+  <Search className="mr-2 h-4 w-4" />
+  Search
+</Button>
+```
+
+## Styling Guidelines
+
+1. **Use Tailwind CSS exclusively** - All styling via utility classes
+2. **CSS Variables** - Theming via CSS variables in `src/index.css` (Tailwind v4 @theme)
+3. **Class Merging** - Use `cn()` from `@/lib/utils` for conditional classes
+4. **Responsive Design** - Mobile-first approach with Tailwind breakpoints
+5. **shadcn/ui Patterns** - Follow existing component patterns for consistency
+
+## Component Guidelines
+
+1. **Create new components** in `src/components/features/` or `src/components/layout/`
+2. **Use functional components** with TypeScript
+3. **Named exports** - Export components as named exports
+4. **TypeScript types** - Define proper prop types (no `any`)
+5. **JSDoc comments** - Document component props and usage
+6. **Error boundaries** - Wrap risky operations in try-catch or use ErrorBoundary
+
+## Example Component Structure
+
+```typescript
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Search } from 'lucide-react'
+import { useIsMobile } from '@/hooks/use-mobile'
+
+interface MyComponentProps {
+  className?: string
+  title: string
+  onAction?: () => void
+}
+
+/**
+ * MyComponent - Description of what this component does
+ */
+export function MyComponent({ className, title, onAction }: MyComponentProps) {
+  const isMobile = useIsMobile()
+
+  return (
+    <Card className={cn('p-4', className)}>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={onAction} size={isMobile ? 'sm' : 'default'}>
+          <Search className="mr-2 h-4 w-4" />
+          Search
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+## Important Rules
+
+1. **DO NOT modify files in `src/components/ui/`** - These are protected shadcn/ui components
+2. **DO NOT modify `src/components/vibestack-badge.tsx`** - The VibeStack badge is protected and must remain visible
+3. **DO NOT remove the VibeStackBadge import from App.tsx** - The badge must always be displayed
+4. **Import any shadcn component** - Core components are in template, others auto-install on-demand
+5. **Use existing utilities** - Leverage `api-client`, `env`, `react-query`, etc.
+6. **Follow TypeScript strict mode** - No `any` types, proper type definitions
+7. **Use path aliases** - Always use `@/` prefix for imports from `src/`
+8. **Tree-shaking works** - Only imported components are bundled
+9. **Error handling** - Use ErrorBoundary and try-catch appropriately
+10. **Mobile-first** - Design for mobile, enhance for desktop
+
+## Dependencies
+
+**Core:**
+- react: ^19.2.0
+- react-dom: ^19.2.0
+- react-router-dom: ^7.9.5
+- typescript: ^5.9.3
+- vite: ^7.2.2
+
+**UI:**
+- lucide-react: ^0.553.0
+- tailwindcss: ^4.1.17
+- All shadcn/ui component dependencies (Radix UI, etc.)
+
+**State:**
+- zustand: ^5.0.8
+- @tanstack/react-query: ^5.90.8
+
+**Utilities:**
+- clsx: ^2.1.1
+- tailwind-merge: ^3.4.0
+- class-variance-authority: ^0.7.1
+
+## Build Commands
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+
+## Code Generation Best Practices
+
+1. **Leverage existing infrastructure** - Use API client, React Query, Zustand stores
+2. **Import only what you need** - Tree-shaking handles the rest
+3. **Follow patterns** - Match existing component and hook patterns
+4. **Type everything** - Full TypeScript coverage
+5. **Error handling** - Always handle errors appropriately
+6. **Mobile responsive** - Use `useIsMobile` hook and responsive classes
+7. **Accessibility** - Use semantic HTML and ARIA attributes
+8. **Performance** - Lazy load routes, use React Query caching
+
+## Bundle Size Optimization
+
+- **Tree-shaking**: Only imported components are bundled (automatic)
+- **Code splitting**: Routes are lazy-loaded (automatic)
+- **No barrel exports**: Components imported individually
+- **Lightweight dependencies**: Native fetch, minimal dependencies
+
+Core shadcn components are in the template. Additional components are automatically installed on-demand when imported, ensuring a lean template while maintaining full component availability.
